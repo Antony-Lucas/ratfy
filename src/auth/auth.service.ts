@@ -4,8 +4,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
@@ -20,6 +20,10 @@ export class AuthService {
     private jwtService: JwtService,
     private prisma: PrismaService,
   ) {}
+
+  async checkAuth(userId: number) {
+    return this.userService.findOne(userId);
+  }
 
   async register(user: CreateUserDto): Promise<{ refresh_token: string }> {
     const existingUser = await this.userService.findByEmail(user.email);
@@ -68,8 +72,13 @@ export class AuthService {
   async storeRefreshToken(token: string, userId: number) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7);
-    await this.prisma.refreshToken.create({
-      data: {
+    await this.prisma.refreshToken.upsert({
+      where: { userId },
+      update: {
+        token,
+        expiresAt: expirationDate,
+      },
+      create: {
         token,
         userId,
         expiresAt: expirationDate,
@@ -77,18 +86,14 @@ export class AuthService {
     });
   }
 
-  async checkAuth(userId: number) {
-    return this.userService.findOne(userId);
-  }
-
   async validateUser(email: string, password: string): Promise<User> {
     const user: User = await this.userService.findByEmail(email);
-    const isAuth: boolean = bcrypt.compareSync(password, user.password);
     if (!user) {
       throw new BadRequestException(
         'Não encontramos uma conta associada a esse endereço de email',
       );
     }
+    const isAuth: boolean = bcrypt.compareSync(password, user.password);
     if (!isAuth) {
       throw new BadRequestException('Senha incorreta');
     }
