@@ -33,6 +33,63 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
 
   refreshToken  RefreshToken?
+  project       UserToProject[]
+  activity      ActivityToUser[]
 
   @@map("user")
+}
+
+model Project{
+  id            Int @id @default(autoincrement())
+  projectName   String
+  startedAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  user          UserToProject[]
+  activity      ProjectToActivity[]
+}
+
+model Activity{
+  id            Int @id @default(autoincrement())
+  title         String
+  description   String   @db.Text
+  totalHours    Float
+  initialData   DateTime
+  endData       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  project       ProjectToActivity[]
+  user          ActivityToUser[]
+}
+
+model UserToProject{
+  userId        Int
+  projectId     Int
+  assignedAt    DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  @@id([userId, projectId])
+}
+
+model ProjectToActivity{
+  projectId     Int
+  activityId    Int
+  assignedAt    DateTime @default(now())
+  project       Project  @relation(fields: [projectId], references: [id])
+  activity      Activity @relation(fields: [activityId], references: [id])
+
+  @@id([projectId, activityId])
+}
+
+model ActivityToUser{
+  userId        Int
+  activityId    Int
+  assignedAt    DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  activity      Activity @relation(fields: [activityId], references: [id])
+
+  @@id([userId, activityId])
 }

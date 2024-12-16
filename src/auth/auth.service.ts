@@ -120,6 +120,7 @@ export class AuthService {
     const newRefreshToken = this.jwtService.sign(payload, {
       expiresIn: '7d',
     });
+
     if (!refresToken) {
       throw new UnauthorizedException('Refresh token inválido');
     }
@@ -129,6 +130,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');
     }
+
     await this.prisma.refreshToken.update({
       where: { token: oldRefreshToken.refresh_token },
       data: {

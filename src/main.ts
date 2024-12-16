@@ -11,10 +11,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Ratfy API')
-    .setDescription('Documentação da API Ratfy')
+    .setTitle('Ratify')
+    .setDescription('ratify api')
     .setVersion('1.0.0')
-    .addTag('RAT')
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',
